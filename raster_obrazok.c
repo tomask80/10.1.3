@@ -123,6 +123,9 @@ char gsi_save_as_pgm5(GSI *img, char *file_name, char *comment)
     return 0;
 }
 
+/**
+ * @return 1 - meotvoril subor
+ */
 GSI *gsi_create_by_pgm5(char *file_name)
 {
     FILE *file = fopen(file_name, "r");
@@ -241,11 +244,7 @@ int main()
     }
 
     char res = gsi_save_as_pgm5(gsi, "raster_obrazok.pgm", "skuska");
-    if (res != 0)
-    {
-        fprintf(stderr, "Failed to save file reason = %c\n", res);
-        return 1;
-    }
+  
 
     gsi_destroy(gsi);
     
