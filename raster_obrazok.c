@@ -96,28 +96,28 @@ char gsi_save_as_pgm5(GSI *img, char *file_name, char *comment)
     if (fprintf(file, "P5\n") < 0)
     {
         // failed to write
+        fclose(file);
         return NEPODARILO_SA_ZAPISAT;
     }
     if (comment != NULL)
     {
         fprintf(file, "# %s\n", comment);
+        if (ferror(file)) {
+            fclose(file);
+            return NEPODARILO_SA_ZAPISAT;
+        }        
     }
     if (fprintf(file, "%d %d 255 ", img->width, img->height) < 0)
     {
         // failed to write
+        fclose(file);
         return NEPODARILO_SA_ZAPISAT;
     }
 
-    for (unsigned char i = 0; i < img->height; i++)
-    {
-        for (unsigned char j = 0; j < img->width; j++)
-        {
-            if (fprintf(file, "%c", img->px[img->width*i+j]) < 0)
-            {
-                // failed to write
-                return NEPODARILO_SA_ZAPISAT;
-            }
-        }
+    fwrite(img->px,img->height*img->width,1,file);
+    if (ferror(file)) {
+        fclose(file);
+        return NEPODARILO_SA_ZAPISAT;
     }
     fclose(file);
     return 0;
@@ -168,22 +168,11 @@ GSI *gsi_create_by_pgm5(char *file_name)
     }
 
     GSI *img = gsi_create_with_geometry(width, height);
-
-    for (unsigned char i = 0; i < img->height; i++)
-    {
-        for (unsigned char j = 0; j < img->width; j++)
-        {
-            // failed to write
-            int c = getc(file);
-            if (c == EOF)
-            {
-                // fail
-                gsi_destroy(img);
-                fclose(file);
-                return NULL;
-            }
-            img->px[i * width + j] = (unsigned char)c;
-        }
+    fread(img->px, img->height*img->width,1, file);
+    if (ferror(file)) {
+        gsi_destroy(img);
+        fclose(file);
+        return NULL;
     }
     fclose(file);
     return img;
@@ -230,7 +219,11 @@ GSI* gsi_create_left_rotation(GSI *to_rotate)
 
 int main()
 {
-    GSI *obrazok2 = gsi_create_by_pgm5("raster_obrazok2.pgm");
+    GSI *obrazok2 = gsi_create_by_pgm5("raster_obrazok3.pgm");
+    if(obrazok2 == NULL) {
+        fprintf(stderr, "Obrazok sa nenacital!");
+        return 1;
+    }
     if (PIX(obrazok2, 0, 0) == 255)
     {
         printf("nacital som obrazok");
