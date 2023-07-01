@@ -4,7 +4,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <string.h>
-
+#define NEPODARILO_SA_ZAPISAT 2
+#define SUBOR_SA_NEOTVORIL 1
 #define PIX(im, x, y) im->px[(y) * im->width + x]
 
 typedef struct
@@ -32,7 +33,6 @@ GSI *gsi_create_empty(void)
     GSI *newGSI = (GSI *)malloc(sizeof(GSI));
     if (newGSI == NULL)
     {
-        printf("Memory allocation failed.\n");
         return NULL;
     }
 
@@ -90,13 +90,13 @@ char gsi_save_as_pgm5(GSI *img, char *file_name, char *comment)
     FILE *file = fopen(file_name, "w");
     if (file == NULL)
     {
-        return 1;
+        return SUBOR_SA_NEOTVORIL;
     }
 
     if (fprintf(file, "P5\n") < 0)
     {
         // failed to write
-        return 2;
+        return NEPODARILO_SA_ZAPISAT;
     }
     if (comment != NULL)
     {
@@ -105,7 +105,7 @@ char gsi_save_as_pgm5(GSI *img, char *file_name, char *comment)
     if (fprintf(file, "%d %d 255 ", img->width, img->height) < 0)
     {
         // failed to write
-        return 2;
+        return NEPODARILO_SA_ZAPISAT;
     }
 
     for (unsigned char i = 0; i < img->height; i++)
@@ -115,7 +115,7 @@ char gsi_save_as_pgm5(GSI *img, char *file_name, char *comment)
             if (fprintf(file, "%c", img->px[img->width*i+j]) < 0)
             {
                 // failed to write
-                return 2;
+                return NEPODARILO_SA_ZAPISAT;
             }
         }
     }
